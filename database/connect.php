@@ -1,36 +1,47 @@
 <?php
-
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "sswrm";
-$table = "tabelle1";
-
-$conn = new mysqli($servername, $username, $password, $database);
-
-if ($conn->connect_error) {
-    die("Verbindung fehlgeschlagen: " . $conn->connect_error);
-}
-$sql = "SELECT Name, Vorname, Beschreibung, bild FROM $table ORDER BY Lehrjahr DESC ";
-$result = $conn->query($sql);
-
-if ($result->num_rows > 0) {
-    $data = array();
-    while ($row = $result->fetch_assoc()) {
-        $entry = array(
-            'Name' => $row['Name'],
-            'Vorname' => $row['Vorname'],
-            'Beschreibung' => $row['Beschreibung'],
-            'bild' => $row['bild']
+class Database {     
+    private function sqlConnect(array $selection, string $table, string $order_by = "") : array
+    {
+        $config = parse_ini_file("database.conf", true);
+        $conn = new mysqli
+        (
+            $config['servername'], 
+            $config['username'], 
+            $config['password'], 
+            $config['database']
         );
-        array_push($data, $entry);
+    
+        if ($conn->connect_error) {
+            die("Verbindung fehlgeschlagen: " . $conn->connect_error);
+        }
+
+        $selection_formated = "";
+
+        for ($i = 0; $i < count($selection); $i++) {
+            $selection_formated .= $selection[$i];
+            if ($i < count($selection) - 1) {
+                $selection_formated .= ", ";
+            }
+        }
+
+        $sql = "SELECT $selection_formated name FROM $table ORDER BY `timestamp` DESC";
+        $result = $conn->query($sql);
+    
+        $data = [];
+    
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                array_push($data, $row);
+            }
+        } 
+        return $data;
     }
-    //convert php Array to JavaScript Array 
-    echo '<script>';
-    echo 'var dataArray = ' . json_encode($data) . ';';
-    echo '</script>';
-} else {
-    echo "Keine Daten gefunden";
+    
+    public function getSavedgames() : array
+    { 
+        $a = $this->sqlConnect(["player_ID","name"], "savegames");
+        return $a;
+        
+    }
 }
-$conn->close();
 ?>

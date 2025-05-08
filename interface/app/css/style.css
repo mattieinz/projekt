@@ -34,10 +34,10 @@ resdisplay{
     justify-content: center;
     align-items: center;
     width: 4vw;
-    height: 2vh;
+    height: 4vh;
     background-color: #16e00b;
     margin: 2vh;
-    border-radius: 10vh;
+    border-radius: 1vh;
 }
 footer{
     width: 60vw;
@@ -70,4 +70,15 @@ fabrik{
     flex-wrap: wrap;
     justify-content: space-around;
     margin: 1vh;
+}
+overlay{
+    Background: rgb(255, 255, 255);
+    border: double black 4px;
+    position: fixed; 
+    top: 50%;
+    left: 50%; 
+    transform: translate(-50%, -50%);
+    padding: 5vh 5vw 5vh 5vw;
+    display: none;
+    flex-direction: column;
 }

@@ -1,6 +1,7 @@
 <link rel="stylesheet" href="./interface/app/css/style.css">
 <script src="./js/jquery-3.7.1.min.js"></script>
 <script type="module" src="./interface/app/js/factorys.js"></script>
+<script type="module" src="./interface/app/js/events.js"></script>
 <script type="module" src="./interface/app/js/app.js"></script>
 
 

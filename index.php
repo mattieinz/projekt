@@ -3,19 +3,14 @@ session_start();
 ?>
 <!DOCTYPE html>
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
-    <title>Login check</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
-<?php
-if (isset($_SESSION['login']) && isset($_SESSION['passwort'])) {
-    include './interface/menu/menu.php';
-} else {
-    include './interface/login/login.php';
-}
-?>
 
-</body>
+    <?php include './interface/app/app.php'; ?>
+    
+
 </html>

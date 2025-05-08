@@ -26,7 +26,7 @@ class Database {
 
         $sql = "SELECT $selection_formated name FROM $table ORDER BY `timestamp` DESC";
         $result = $conn->query($sql);
-    
+     
         $data = [];
     
         if ($result && $result->num_rows > 0) {

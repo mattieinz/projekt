@@ -36,7 +36,7 @@ let savegame = {
                 modifer: 0,
                 modifer_time: 0,
                 modifer_description: ""
-            }, 
+            },
             4: {
                 type: "mine",
                 workers: 5,
@@ -142,7 +142,7 @@ function loadSavegame() {
 
 
 class Factory {
-    constructor({ name, requirements = [], output = [], workers = 0}) {
+    constructor({ name, requirements = [], output = [], workers = 0 }) {
         this.name = name;
         this.requirements = requirements;
         this.output = output;
@@ -193,13 +193,13 @@ function randomEvent() {
     }
 }
 function strikeEvent() {
-    let amount_factory = ranInt(1, factorys.length / 2);
+    let amount_factory = ranInt(1, savegame.layers.length / 2);
     let amount_decrease = ranInt(10, 60);
     let affected_factorys = [];
 
-    for (let i = 0; i < amount_factory; i++) {
-        affected_factorys.push(factorys[ranInt(0, factorys.length)]);
-    }
+    // for (let i = 0; i < amount_factory; i++) {
+    //     // affected_factorys.push(factorys[ranInt(0, factorys.length)]);
+    // }
 
     let output = "";
     output += "amount_factory: " + amount_factory + "<br>";
@@ -209,7 +209,7 @@ function strikeEvent() {
         output += affected_factorys[i] + "<br>";
     }
 
-    overlay(60, 60, "Streik in der Arbeiterschaft!", [], []);
+    overlay("Streik in der Arbeiterschaft!", "palapla", [], []);
 }
 function disatserEvent() {
 
@@ -230,8 +230,14 @@ function overlay(Title, description, option1 = [], option2 = []) {
     overlay_html.find("h1").text(Title)
     overlay_html.find("p").text(description)
 
-    if (option1) overlay_html.find("#option1").text(option1);
-    if (option2) overlay_html.find("#option2").text(option2);
+    let opt1Element = overlay_html.find("#option1");
+    let opt2Element = overlay_html.find("#option2");
+
+    if (option1) opt1Element.text(option1).css({ "display": "block" });
+    else opt1Element.css({ "display": "none" });
+    
+    if (option2) opt2Element.text(option2).css({ "display": "block" });
+    else opt2Element.css({ "display": "none" });
 
 }
 
@@ -244,6 +250,8 @@ $(document).ready(function () {
     loadSavegame();
     $("#etest").on("click", function () {
         randomEvent();
+        console.log("test");
+
     })
 
 });

@@ -1,26 +1,148 @@
-var savegame = {
+let savegame = {
     res: {
         "credits": 10000,
         "raw_material": 100,
         "fabrics": 100,
         "equipment_material": 100
     },
-    layers: [
+    layers:
+    {
+        "Standort1": {
+
+            0: {
+                type: "mine",
+                workers: 4,
+                modifer: 60,
+                modifer_time: 5,
+                modifer_description: "Du stinks"
+            },
+            1: {
+                type: "farm",
+                workers: 5,
+                modifer: 0,
+                modifer_time: 0,
+                modifer_description: ""
+            },
+            2: {
+                type: "equip",
+                workers: 5,
+                modifer: 0,
+                modifer_time: 0,
+                modifer_description: ""
+            },
+            3: {
+                type: "steel",
+                workers: 5,
+                modifer: 0,
+                modifer_time: 0,
+                modifer_description: ""
+            }, 
+            4: {
+                type: "mine",
+                workers: 5,
+                modifer: 0,
+                modifer_time: 0,
+                modifer_description: ""
+            }
+        },
+        "Standort2":
         {
-            name: "Standort1",
-            factories: [
-                mine,
-                farm,
-                equipment,
-                steel
-            ]
+            0: {
+                type: "mine",
+                workers: 4,
+                modifer: 0,
+                modifer_time: 0,
+                modifer_description: ""
+            },
+            1: {
+                type: "farm",
+                workers: 5,
+                modifer: 0,
+                modifer_time: 0,
+                modifer_description: ""
+            }
+
+        },
+        "Standort3": {
+
         }
-    ]
+    }
+}
+
+
+
+function getValidLayer() {
 
 }
 
+function loadSavegame() {
+    const res = savegame.res;
+
+    $("#credits").html("Kredits:" + res.credits);
+    $("#raw_material").html("Rohstoffe:" + res.raw_material);
+    $("#fabrics").html("Stoffe:" + res.fabrics);
+    $("#equipment_material").html("Hilfsmittel:" + res.equipment_material);
+
+    let output = "";
+    const layer = savegame.layers;
+
+    for (const standort in layer) {
+
+        const eintrag = layer[standort];
+        if (Object.keys(eintrag).length != 0) {
+            output += `
+                <layer1 class="layer">
+                    <ort>${standort}</ort>
+                    <list>
+                `
+            for (const factoryName in eintrag) {
+                let factoryType = eval(eintrag[factoryName].type);
+                let factoryStatus = eintrag[factoryName]
+
+                output += `
+                <Fabrik>
+                    <fabrikname>${factoryType.name}</fabrikname>
+                `
+                if (factoryStatus.modifer != 0) {
+                    output += `
+                        <fabriktype class="badModifer">${factoryStatus.modifer_description}</fabriktype>
+                        <fabriktype class="badModifer">${"Einbußen: " + factoryStatus.modifer + "%"}</fabriktype>
+                    `
+                }
+                else {
+                    output += `
+                        <fabriktype>${factoryType.requirements}</fabriktype>
+                    `
+                }
+                output +=
+                    `
+                    <fabrikarbeiter>${factoryStatus.workers}/${factoryType.workers}</fabrikarbeiter>
+                </Fabrik>
+                `
+            }
+
+            output += `
+                <Fabrik id="${standort}add">
+                    <p>+</p>
+                </Fabrik>
+                    `
+            output += `
+                    </list>
+                </layer1>
+                `
+        }
+    }
+    $('app').append(output);
+}
+
+
+
+
+
+
+
 class Factory {
-    constructor({ name, requirements = [], output = [], workers = 0 }) {
+    constructor({ name, requirements = [], output = [], workers = 0}) {
         this.name = name;
         this.requirements = requirements;
         this.output = output;
@@ -32,7 +154,7 @@ const mine = new Factory({
     name: "Bergbau",
     requirements: [{}],
     output: [{ type: "raw_material", amount: 10 }],
-    workers: 8
+    workers: 8,
 });
 
 const farm = new Factory({
@@ -42,7 +164,7 @@ const farm = new Factory({
     workers: 5
 });
 
-const equipment = new Factory({
+const equip = new Factory({
     name: "Ausrüstung",
     requirements: [{ type: "raw_material", amount: 5 }, { type: "fabrics", amount: 5 }],
     output: [{ type: "equipment_material", amount: 8 }],
@@ -52,20 +174,15 @@ const equipment = new Factory({
 const steel = new Factory({
     name: "Stahlgießerei",
     requirements: [{ type: "raw_material", amount: 5 }],
-    output: [{ type: "steel", amount: 5 }],
+    output: [{ type: "processed_steel", amount: 5 }],
     workers: 5
 });
 
+for (let location = 0; location < savegame.layers.length; location++) {
+    const element = savegame.layers[location];
+    if (element) console.log(element);
 
-class Factory {
-    constructor({ name, requirements = [], output = [], workers = 0 }) {
-        this.name = name;
-        this.requirements = requirements;
-        this.output = output;
-        this.workers = workers;
-    }
 }
-
 
 
 function randomEvent() {
@@ -76,19 +193,19 @@ function randomEvent() {
     }
 }
 function strikeEvent() {
-    var amount_factory = ranInt(1, factorys.length / 2);
-    var amount_decrease = ranInt(10, 60);
-    var affected_factorys = [];
+    let amount_factory = ranInt(1, factorys.length / 2);
+    let amount_decrease = ranInt(10, 60);
+    let affected_factorys = [];
 
-    for (var i = 0; i < amount_factory; i++) {
+    for (let i = 0; i < amount_factory; i++) {
         affected_factorys.push(factorys[ranInt(0, factorys.length)]);
     }
 
-    var output = "";
+    let output = "";
     output += "amount_factory: " + amount_factory + "<br>";
     output += "amount_decrease: " + amount_decrease + "<br>";
 
-    for (var i = 0; i < affected_factorys.length; i++) {
+    for (let i = 0; i < affected_factorys.length; i++) {
         output += affected_factorys[i] + "<br>";
     }
 
@@ -124,7 +241,7 @@ function ranInt(frist, last) {
 
 
 $(document).ready(function () {
-
+    loadSavegame();
     $("#etest").on("click", function () {
         randomEvent();
     })

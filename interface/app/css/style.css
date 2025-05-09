@@ -1,6 +1,8 @@
 *{
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
+    user-select: none;
+    transition: all 0.10s ease-in-out;
 }
 html{
     height: 100vh;
@@ -17,6 +19,7 @@ button{
 }
 app{
     display: flex;
+    flex-direction: column;
     width: 100vw;
     height: 85vh;
 }
@@ -28,6 +31,9 @@ header{
     flex-direction: row;
     align-items: center;
     color: aliceblue;
+}
+.badModifer{
+    background-color: rgba(255, 0, 0, 0.405);
 }
 resdisplay{
     display: flex;
@@ -50,7 +56,7 @@ footer{
     justify-content: center;
 }
 .layer{
-    width: 100vw;
+    width: 98vw;
     height: 20vh;
     background-color: gainsboro;
     margin: 1vh;
@@ -70,6 +76,16 @@ fabrik{
     flex-wrap: wrap;
     justify-content: space-around;
     margin: 1vh;
+    background-color: rgb(234, 234, 234);
+}
+fabrik:hover{
+    scale: 1.1;
+    cursor: pointer;
+}
+button:hover{
+    background-color: rgb(255, 255, 255);
+    border-color: #f9f9f9;
+    cursor: pointer;
 }
 overlay{
     Background: rgb(255, 255, 255);

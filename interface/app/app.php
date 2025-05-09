@@ -7,27 +7,15 @@
 
 <body>
     <header>
-        <resdisplay style="background-color:#e0c70ba0;">Kredits: 100 </resdisplay>
-        <resdisplay style="background-color:#0bb9e0a0;">Rohstoffe: 0</resdisplay>
-        <resdisplay style="background-color:#16e00ba0;">Stoffe: 0 </resdisplay>
-        <resdisplay style="background-color:#a60f0ba0;">Hilfsmittel: 0</resdisplay>
+        <resdisplay id="credits" style="background-color:#e0c70ba0;">Kredits: 100 </resdisplay>
+        <resdisplay id="raw_material" style="background-color:#0bb9e0a0;">Rohstoffe: 0</resdisplay>
+        <resdisplay id="fabrics" style="background-color:#16e00ba0;">Stoffe: 0 </resdisplay>
+        <resdisplay id="equipment_material" style="background-color:#a60f0ba0;">Hilfsmittel: 0</resdisplay>
     </header>
 
     <app>
 
-        <layer1 class="layer">
-            <ort>Standort1</ort>
-            <list>
-                <Fabrik id="fabrik1">
-                    <fabrikname>fabrik1</fabrikname>
-                    <fabriktype>Stahlgießerei</fabriktype>
-                    <fabrikarbeiter>2/5</fabrikarbeiter>
-                </Fabrik>
-                <Fabrik>
-                    <p>+</p>
-                </Fabrik>
-            </list>
-        </layer1>
+
 
     </app>
 

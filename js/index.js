@@ -1,1 +1,0 @@
-var lastevent = 10;

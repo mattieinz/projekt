@@ -1,20 +1,23 @@
 let savegame = {
     res: {
         "credits": 10000,
-        "raw_material": 100,
-        "fabrics": 100,
-        "equipment_material": 100
+        "material_raw_metals": 100,
+        "material_fabrics": 100,
+        "material_equipment": 100,
+        "processed_steel": 100,
+        "processed_Clothes": 100,
+        "processed_furniture": 100
     },
-    layers:
+    location:
     {
         "Standort1": {
 
             0: {
                 type: "mine",
-                workers: 4,
+                workers: 6,
                 modifer: 60,
                 modifer_time: 5,
-                modifer_description: "Du stinks"
+                modifer_description: "streik"
             },
             1: {
                 type: "farm",
@@ -71,12 +74,9 @@ let savegame = {
 
 
 
-function getValidLayer() {
-
-}
 
 function loadSavegame() {
-    const res = savegame.res;
+    let res = savegame.res;
 
     $("#credits").html("Kredits:" + res.credits);
     $("#raw_material").html("Rohstoffe:" + res.raw_material);
@@ -84,18 +84,18 @@ function loadSavegame() {
     $("#equipment_material").html("Hilfsmittel:" + res.equipment_material);
 
     let output = "";
-    const layer = savegame.layers;
+    let layer = savegame.location;
 
-    for (const standort in layer) {
+    for (let standort in layer) {
 
-        const eintrag = layer[standort];
+        let eintrag = layer[standort];
         if (Object.keys(eintrag).length != 0) {
             output += `
                 <layer1 class="layer">
                     <ort>${standort}</ort>
                     <list>
                 `
-            for (const factoryName in eintrag) {
+            for (let factoryName in eintrag) {
                 let factoryType = eval(eintrag[factoryName].type);
                 let factoryStatus = eintrag[factoryName]
 
@@ -134,13 +134,6 @@ function loadSavegame() {
     }
     $('app').append(output);
 }
-
-
-
-
-
-
-
 class Factory {
     constructor({ name, requirements = [], output = [], workers = 0 }) {
         this.name = name;
@@ -178,8 +171,8 @@ const steel = new Factory({
     workers: 5
 });
 
-for (let location = 0; location < savegame.layers.length; location++) {
-    const element = savegame.layers[location];
+for (let location = 0; location < savegame.location.length; location++) {
+    const element = savegame.location[location];
     if (element) console.log(element);
 
 }
@@ -193,13 +186,9 @@ function randomEvent() {
     }
 }
 function strikeEvent() {
-    let amount_factory = ranInt(1, savegame.layers.length / 2);
+    let amount_factory = ranInt(1, savegame.location.length / 2);
     let amount_decrease = ranInt(10, 60);
     let affected_factorys = [];
-
-    // for (let i = 0; i < amount_factory; i++) {
-    //     // affected_factorys.push(factorys[ranInt(0, factorys.length)]);
-    // }
 
     let output = "";
     output += "amount_factory: " + amount_factory + "<br>";
@@ -209,7 +198,7 @@ function strikeEvent() {
         output += affected_factorys[i] + "<br>";
     }
 
-    overlay("Streik in der Arbeiterschaft!", "palapla", [], []);
+    overlay("Streik in der Arbeiterschaft!", "Beischreibung", [], []);
 }
 function disatserEvent() {
 
@@ -248,12 +237,6 @@ function ranInt(frist, last) {
 
 $(document).ready(function () {
     loadSavegame();
-    $("#etest").on("click", function () {
-        randomEvent();
-        console.log("test");
-
-    })
-
 });
 
 

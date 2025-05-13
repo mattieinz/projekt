@@ -1,3 +1,43 @@
+<?php
+session_start();
+$connectionPath = '..\..\database\connect.php';
+if (!$connectionPath) {
+    die("Datei nicht gefunden: " . __DIR__ . '/../../database/connection.php');
+}
+require_once($connectionPath);
+
+
+if (!isset($_SESSION['user'])) {
+    header("Location: ../login/login.php");
+    exit;
+}
+
+$savegame = [
+    'res' => [
+        'credits' => 10000,
+        'material_raw_metals' => 100,
+        'material_fabrics' => 100,
+        'material_equipment' => 100,
+        'processed_steel' => 100,
+        'processed_Clothes' => 100,
+        'processed_furniture' => 100
+    ],
+    'layers' => [
+        'Standort1' => [
+            [
+                'type' => 'mine',
+                'workers' => 6,
+                'modifer' => 60,
+                'modifer_time' => 5,
+                'modifer_description' => 'streik'
+            ]
+        ]
+    ]
+];
+
+?>
+<script>console.log(savegame);</script>
+
 <link rel="stylesheet" href="./interface/app/css/style.css">
 <script src="./js/jquery-3.7.1.min.js"></script>
 <script type="module" src="./interface/app/js/factorys.js"></script>
@@ -15,8 +55,6 @@
 
     <app>
 
-
-
     </app>
 
     <footer>
@@ -31,5 +69,7 @@
         <p>i bims test</p>
     </overlay>
 
-    <button id="etest" style="color: black;Background: Red; position: absolute; bottom: 50vh;left: 88vw; width: 10vw;">Event Testen</button>
+    <button id="etest"
+        style="color: black;Background: Red; position: absolute; bottom: 50vh;left: 88vw; width: 10vw;">Event
+        Testen</button>
 </body>

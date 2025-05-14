@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Benutzername existiert nicht.";
     } else {
         $user = $result->fetch_assoc();
-        if (password_verify($password, $user['Password'])) {
+        if (password_verify($password, $user['PASSWORD'])) {
             $_SESSION['user'] = $username;
             header("Location: ../App/App.php");
             exit;

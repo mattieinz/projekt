@@ -6,47 +6,24 @@ if (!$connectionPath) {
 }
 require_once($connectionPath);
 
-
 if (!isset($_SESSION['user'])) {
     header("Location: ../login/login.php");
     exit;
 }
 
-$savegame = [
-    'res' => [
-        'credits' => 10000,
-        'material_raw_metals' => 100,
-        'material_fabrics' => 100,
-        'material_equipment' => 100,
-        'processed_steel' => 100,
-        'processed_Clothes' => 100,
-        'processed_furniture' => 100
-    ],
-    'layers' => [
-        'Standort1' => [
-            [
-                'type' => 'mine',
-                'workers' => 6,
-                'modifer' => 60,
-                'modifer_time' => 5,
-                'modifer_description' => 'streik'
-            ]
-        ]
-    ]
-];
+;
 
 ?>
-<script>console.log(savegame);</script>
+<script>console.log(<?php echo json_encode($_SESSION['user']); ?>);</script>
 
-<link rel="stylesheet" href="./interface/app/css/style.css">
-<script src="./js/jquery-3.7.1.min.js"></script>
-<script type="module" src="./interface/app/js/factorys.js"></script>
-<script type="module" src="./interface/app/js/events.js"></script>
-<script type="module" src="./interface/app/js/app.js"></script>
+<link rel="stylesheet" href="./css/style.css">
+<script src="../../js/jquery-3.7.1.min.js"></script>
+<script type="module" src="./js/app.js"></script>
 
 
 <body>
     <header>
+        <name><?php echo $_SESSION['user']; ?></name>
         <resdisplay id="credits" style="background-color:#e0c70ba0;">Kredits: 100 </resdisplay>
         <resdisplay id="raw_material" style="background-color:#0bb9e0a0;">Rohstoffe: 0</resdisplay>
         <resdisplay id="fabrics" style="background-color:#16e00ba0;">Stoffe: 0 </resdisplay>
@@ -63,6 +40,22 @@ $savegame = [
         <button>Verbrauchsübersicht</button>
         <button>Runde Beenden</button>
     </footer>
+
+    <Locations>
+
+    </Locations>
+
+    <market>
+
+    </market>
+
+    <usage>
+
+    </usage>
+
+    <round>
+
+    </round>
 
     <overlay>
         <h1>ich bin h1</h1>

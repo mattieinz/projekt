@@ -2,7 +2,7 @@ let savegame = {
     res: {
         "credits": 10000,
         "material_raw_metals": 100,
-        "material_fabrics": 100,
+        "material_fabrics": 1000000,
         "material_equipment": 100,
         "processed_steel": 100,
         "processed_Clothes": 100,
@@ -79,9 +79,9 @@ function loadSavegame() {
     let res = savegame.res;
 
     $("#credits").html("Kredits:" + res.credits);
-    $("#raw_material").html("Rohstoffe:" + res.raw_material);
-    $("#fabrics").html("Stoffe:" + res.fabrics);
-    $("#equipment_material").html("Hilfsmittel:" + res.equipment_material);
+    $("#raw_material").html("Rohstoffe:" + res.material_raw_metals);
+    $("#fabrics").html("Stoffe:" + res.material_fabrics);
+    $("#equipment_material").html("Hilfsmittel:" + res.material_equipment);
 
     let output = "";
     let layer = savegame.location;

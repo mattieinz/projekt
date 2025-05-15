@@ -1,34 +1,52 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../database/connect.php';
 
-require_once('..\..\database\connect.php');
+function sanitizeInput($conn, $key) {
+    return isset($_POST[$key]) ? trim($conn->real_escape_string($_POST[$key])) : '';
+}
+
+function redirectToApp() {
+    header("Location: ../App/App.php");
+    exit;
+}
+
+function validateLoginInput($username, $password) {
+    return !empty($username) && !empty($password);
+}
+
+function findUserByUsername($conn, $username) {
+    $stmt = $conn->prepare("SELECT * FROM players WHERE Name = ?");
+    $stmt->bind_param('s', $username);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_assoc();
+}
+
+function handleLogin($conn) {
+    $username = sanitizeInput($conn, 'Name');
+    $password = sanitizeInput($conn, 'Password');
+
+    if (!validateLoginInput($username, $password)) {
+        return "Benutzername und Passwort dürfen nicht leer sein.";
+    }
+
+    $user = findUserByUsername($conn, $username);
+
+    if (!$user) {
+        return "Benutzername existiert nicht.";
+    }
+
+    if (!password_verify($password, $user['Password'])) {
+        return "Falsches Passwort.";
+    }
+
+    $_SESSION['user'] = $username;
+    redirectToApp();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn = getConnection();
-
-    // Sicherheitsüberprüfung auf Eingabefelder
-    $username = isset($_POST['Name']) ? $conn->real_escape_string($_POST['Name']) : '';
-    $password = isset($_POST['Password']) ? $conn->real_escape_string($_POST['Password']) : '';
-
-    if (empty($username) || empty($password)) {
-        $error = "Benutzername und Passwort dürfen nicht leer sein.";
-    } else {
-        $sql = "SELECT * FROM players WHERE Name = '$username'";
-        $result = $conn->query($sql);
-
-        if ($result->num_rows === 0) {
-            $error = "Benutzername existiert nicht.";
-        } else {
-            $user = $result->fetch_assoc();
-            if (password_verify($password, $user['Password'])) {
-                $_SESSION['user'] = $username;
-                header("Location: ../App/App.php");
-                exit;
-            } else {
-                $error = "Falsches Passwort.";
-            }
-        }
-    }
+    $error = handleLogin($conn);
     $conn->close();
 }
 ?>

@@ -1,7 +1,7 @@
 <?php
 function getConnection(): mysqli
 {
-    $config = parse_ini_file(__DIR__ . '/database.conf', true);
+    $config = parse_ini_file(__DIR__ . '/database.env', true);
     $conn = new mysqli(
         $config['servername'],
         $config['database_username'],

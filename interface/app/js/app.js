@@ -1,139 +1,131 @@
-let savegame = {
-    res: {
-        "credits": 10000,
+const saveGame = {
+    ressources: {
+        "credits": 100,
         "material_raw_metals": 100,
-        "material_fabrics": 1000000,
+        "material_fabrics": 100,
         "material_equipment": 100,
         "processed_steel": 100,
         "processed_Clothes": 100,
         "processed_furniture": 100
     },
-    location:
+    marketValues: {
+        "material_raw_metals": 0.86,
+        "material_fabrics": 0.77,
+        "material_equipment": 1,
+        "processed_steel": 4,
+        "processed_Clothes": 2,
+        "processed_furniture": 5
+    },
+    factoryList:
     {
-        "Standort1": {
-
-            0: {
-                type: "mine",
-                workers: 6,
-                modifer: 60,
-                modifer_time: 5,
-                modifer_description: "streik"
-            },
-            1: {
-                type: "farm",
-                workers: 5,
-                modifer: 0,
-                modifer_time: 0,
-                modifer_description: ""
-            },
-            2: {
-                type: "equip",
-                workers: 5,
-                modifer: 0,
-                modifer_time: 0,
-                modifer_description: ""
-            },
-            3: {
-                type: "steel",
-                workers: 5,
-                modifer: 0,
-                modifer_time: 0,
-                modifer_description: ""
-            },
-            4: {
-                type: "mine",
-                workers: 5,
-                modifer: 0,
-                modifer_time: 0,
-                modifer_description: ""
-            }
+        0: {
+            type: "mine",
+            workers: 6,
+            modifer: 0,
+            modifer_time: 0,
+            modifer_description: ""
         },
-        "Standort2":
-        {
-            0: {
-                type: "mine",
-                workers: 4,
-                modifer: 0,
-                modifer_time: 0,
-                modifer_description: ""
-            },
-            1: {
-                type: "farm",
-                workers: 5,
-                modifer: 0,
-                modifer_time: 0,
-                modifer_description: ""
-            }
-
-        },
-        "Standort3": {
-
+        1: {
+            type: "steel",
+            workers: 5,
+            modifer: 0,
+            modifer_time: 0,
+            modifer_description: ""
         }
     }
 }
 
-
-
+const typesOfMaterials = {
+    "credits": "Credits",
+    "material_metals": "Rohstoffe",
+    "material_fabrics": "Stoffe",
+    "material_equipment": "Hilfsmittel",
+    "processed_steel": "Stahl",
+    "processed_Clothes": "Kleidung",
+    "processed_furniture": "Verarbeitete Möbel"
+}
 
 function loadSavegame() {
-    let res = savegame.res;
+    const ressources = saveGame.ressources;
+    updateResourcesUI(ressources);
 
-    $("#credits").html("Kredits:" + res.credits);
-    $("#raw_material").html("Rohstoffe:" + res.material_raw_metals);
-    $("#fabrics").html("Stoffe:" + res.material_fabrics);
-    $("#equipment_material").html("Hilfsmittel:" + res.material_equipment);
+    const factoryList = saveGame.factoryList;
+    if (Object.keys(factoryList).length === 0) return;
 
-    let output = "";
-    let layer = savegame.location;
-
-    for (let standort in layer) {
-
-        let eintrag = layer[standort];
-        if (Object.keys(eintrag).length != 0) {
-            output += `
-                <layer1 class="layer">
-                    <ort>${standort}</ort>
-                    <list>
-                `
-            for (let factoryName in eintrag) {
-                let factoryType = eval(eintrag[factoryName].type);
-                let factoryStatus = eintrag[factoryName]
-
-                output += `
-                <Fabrik>
-                    <fabrikname>${factoryType.name}</fabrikname>
-                `
-                if (factoryStatus.modifer != 0) {
-                    output += `
-                        <fabriktype class="badModifer">${factoryStatus.modifer_description}</fabriktype>
-                        <fabriktype class="badModifer">${"Einbußen: " + factoryStatus.modifer + "%"}</fabriktype>
-                    `
-                }
-                else {
-                    output += `
-                        <fabriktype>${factoryType.requirements}</fabriktype>
-                    `
-                }
-                output +=
-                    `
-                    <fabrikarbeiter>${factoryStatus.workers}/${factoryType.workers}</fabrikarbeiter>
-                </Fabrik>
-                `
-            }
-
-            output += `
-                <Fabrik id="${standort}add">
-                    <p>+</p>
-                </Fabrik>
-                    `
-            output += `
-                    </list>
-                </layer1>
-                `
-        }
-    }
-    $('app').append(output);
+    const factoriesHtml = buildFactoriesHtml(factoryList);
+    $('factories').append(factoriesHtml);
 }
+
+function updateResourcesUI(ressources) {
+    $("#credits").html(typesOfMaterials.credits + ressources.credits);
+    $("#material_metals").html(typesOfMaterials.material_metals +
+        ressources.material_raw_metals);
+    $("#material_fabrics").html(typesOfMaterials.material_fabrics + 
+        ressources.material_fabrics);
+    $("#material_equipment").html(typesOfMaterials.material_equipment + 
+        ressources.material_equipment);
+}
+
+function buildFactoriesHtml(factoryList) {
+    let html = `
+        <layer>
+            <ort>Fabriken</ort>
+            <list>
+    `;
+
+    for (const factoryName in factoryList) {
+        html += buildFactoryHtml(factoryList[factoryName]);
+    }
+
+    html += `
+                <factory id="addFactory">
+                    <p>+</p>
+                </factory>
+            </list>
+        </layer>
+    `;
+
+    return html;
+}
+
+function buildFactoryHtml(factoryStatus) {
+    const factoryType = eval(factoryStatus.type);
+    let html = `
+        <factory>
+            <factoryname>${factoryType.name}</factoryname>
+    `;
+
+    if (factoryStatus.modifer !== 0) {
+        html += `
+            <factorytype class="badModifer">${factoryStatus.modifer_description}</factorytype>
+            <factorytype class="badModifer">Einbußen: ${factoryStatus.modifer}%</factorytype>
+        `;
+    } else {
+        html += buildFactoryRequirementsHtml(factoryType);
+        html += buildFactoryOutputHtml(factoryType);
+    }
+
+    html += `
+        <factoryworkers>${factoryStatus.workers}/${factoryType.workers}</factoryworkers>
+        </factory>
+    `;
+
+    return html;
+}
+
+function buildFactoryRequirementsHtml(factoryType) {
+    return factoryType.requirements
+        .filter(req => req.type)
+        .map(req => `<fabriktype>-${req.amount} ${typesOfMaterials[req.type]}</fabriktype>`)
+        .join('');
+}
+
+function buildFactoryOutputHtml(factoryType) {
+    return factoryType.output
+        .map(out => `<fabriktype>+${out.amount} ${typesOfMaterials[out.type]}</fabriktype>`)
+        .join('');
+}
+
 class Factory {
     constructor({ name, requirements = [], output = [], workers = 0 }) {
         this.name = name;
@@ -143,36 +135,37 @@ class Factory {
     }
 }
 
-const mine = new Factory({
-    name: "Bergbau",
-    requirements: [{}],
-    output: [{ type: "raw_material", amount: 10 }],
-    workers: 8,
+
+const steel = new Factory({
+    name: "Stahlgießerei",
+    requirements: [{ type: "material_metals", amount: 5 }],
+    output: [{ type: "processed_steel", amount: 5 }],
+    workers: 5
 });
 
 const farm = new Factory({
     name: "Farm",
     requirements: [{}],
-    output: [{ type: "fabrics", amount: 8 }],
+    output: [{ type: "material_fabrics", amount: 8 }],
     workers: 5
+});
+
+const mine = new Factory({
+    name: "Bergbau",
+    requirements: [{}],
+    output: [{ type: "material_metals", amount: 10 }],
+    workers: 8,
 });
 
 const equip = new Factory({
     name: "Ausrüstung",
-    requirements: [{ type: "raw_material", amount: 5 }, { type: "fabrics", amount: 5 }],
-    output: [{ type: "equipment_material", amount: 8 }],
+    requirements: [{ type: "material_metals", amount: 5 }, { type: "material_fabrics", amount: 5 }],
+    output: [{ type: "material_equipment", amount: 8 }],
     workers: 5
 });
 
-const steel = new Factory({
-    name: "Stahlgießerei",
-    requirements: [{ type: "raw_material", amount: 5 }],
-    output: [{ type: "processed_steel", amount: 5 }],
-    workers: 5
-});
-
-for (let location = 0; location < savegame.location.length; location++) {
-    const element = savegame.location[location];
+for (let factoryList = 0; factoryList < saveGame.factoryList.length; factoryList++) {
+    const element = saveGame.factoryList[factoryList];
     if (element) console.log(element);
 
 }
@@ -186,7 +179,7 @@ function randomEvent() {
     }
 }
 function strikeEvent() {
-    let amount_factory = ranInt(1, savegame.location.length / 2);
+    let amount_factory = ranInt(1, saveGame.factoryList.length / 2);
     let amount_decrease = ranInt(10, 60);
     let affected_factorys = [];
 
@@ -203,8 +196,13 @@ function strikeEvent() {
 function disatserEvent() {
 
 }
-function marketChangeEvent() {
 
+function marketChangeEvent() {
+    let random_ressource = ranInt(1, Object.keys(saveGame.marketValues).length-1)
+    let ressourceType = Object.keys(saveGame.marketValues)[random_ressource];
+
+    saveGame.marketValues[ressourceType] = ranInt(1, 100)/10;
+    console.log(ressourceType, saveGame.marketValues[ressourceType]);
 }
 
 
@@ -224,7 +222,7 @@ function overlay(Title, description, option1 = [], option2 = []) {
 
     if (option1) opt1Element.text(option1).css({ "display": "block" });
     else opt1Element.css({ "display": "none" });
-    
+
     if (option2) opt2Element.text(option2).css({ "display": "block" });
     else opt2Element.css({ "display": "none" });
 
@@ -237,6 +235,7 @@ function ranInt(frist, last) {
 
 $(document).ready(function () {
     loadSavegame();
+    marketChangeEvent();
 });
 
 

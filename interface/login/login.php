@@ -5,29 +5,32 @@ require_once('..\..\database\connect.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn = getConnection();
-    $username = $conn->real_escape_string($_POST['name']);
-    $password = $conn->real_escape_string($_POST['Password']);
+
+    // Sicherheitsüberprüfung auf Eingabefelder
+    $username = isset($_POST['Name']) ? $conn->real_escape_string($_POST['Name']) : '';
+    $password = isset($_POST['Password']) ? $conn->real_escape_string($_POST['Password']) : '';
+
     if (empty($username) || empty($password)) {
         $error = "Benutzername und Passwort dürfen nicht leer sein.";
-    }
-    $sql = "SELECT * FROM players WHERE Name = '$username'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows === 0) {
-        $error = "Benutzername existiert nicht.";
     } else {
-        $user = $result->fetch_assoc();
-        if (password_verify($password, $user['PASSWORD'])) {
-            $_SESSION['user'] = $username;
-            header("Location: ../App/App.php");
-            exit;
+        $sql = "SELECT * FROM players WHERE Name = '$username'";
+        $result = $conn->query($sql);
+
+        if ($result->num_rows === 0) {
+            $error = "Benutzername existiert nicht.";
         } else {
-            $error = "Falsches Passwort.";
+            $user = $result->fetch_assoc();
+            if (password_verify($password, $user['Password'])) {
+                $_SESSION['user'] = $username;
+                header("Location: ../App/App.php");
+                exit;
+            } else {
+                $error = "Falsches Passwort.";
+            }
         }
     }
     $conn->close();
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -42,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if (!empty($error))
         echo "<p style='color:red;'>$error</p>"; ?>
     <form method="POST">
-        Benutzername: <input type="text" name="name" required><br>
+        Benutzername: <input type="text" name="Name" required><br>
         Passwort: <input type="password" name="Password" required><br>
         <button type="submit">Login</button>
     </form>

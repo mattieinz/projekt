@@ -41,22 +41,6 @@ if (!isset($_SESSION['user'])) {
         <button>Runde Beenden</button>
     </footer>
 
-    <Locations>
-
-    </Locations>
-
-    <market>
-
-    </market>
-
-    <usage>
-
-    </usage>
-
-    <round>
-
-    </round>
-
     <overlay>
         <h1>ich bin h1</h1>
         <p>i bims test</p>

@@ -1,12 +1,12 @@
-const saveGame = {
+var saveGame = {
     ressources: {
         "credits": 100,
-        "material_raw_metals": 100,
-        "material_fabrics": 100,
-        "material_equipment": 100,
-        "processed_steel": 100,
-        "processed_Clothes": 100,
-        "processed_furniture": 100
+        "material_raw_metals": 0,
+        "material_fabrics": 0,
+        "material_equipment": 0,
+        "processed_steel": 0,
+        "processed_Clothes": 0,
+        "processed_furniture": 0
     },
     marketValues: {
         "material_raw_metals": 0.86,
@@ -20,7 +20,7 @@ const saveGame = {
     {
         0: {
             type: "mine",
-            workers: 6,
+            workers: 5,
             modifer: 0,
             modifer_time: 0,
             modifer_description: ""
@@ -34,6 +34,8 @@ const saveGame = {
         }
     }
 }
+var oldSavegame = {};
+var roundLog = "";
 
 const namesOfMaterials = {
     "credits": "Credits",
@@ -90,7 +92,7 @@ function buildFactoriesHtml(factoryList) {
     return html;
 }
 
-function clearFactories(factoryElement){
+function clearFactories(factoryElement) {
     factoryElement.empty();
 };
 
@@ -105,7 +107,7 @@ function buildFactoryHtml(factoryStatus) {
     if (factoryStatus.modifer !== 0) {
         html += `
             <factorytype class="badModifer">${factoryStatus.modifer_description}</factorytype>
-            <factorytype class="badModifer">Einbußen: ${factoryStatus.modifer}%</factorytype>
+            <factorytype class="badModifer">Einbußen: ${100 - factoryStatus.modifer * 100}%</factorytype>
         `;
     } else {
         html += buildFactoryRequirementsHtml(factoryType);
@@ -134,11 +136,12 @@ function buildFactoryOutputHtml(factoryType) {
 }
 
 class Factory {
-    constructor({ name, requirements = [], output = [], workers = 0 }) {
+    constructor({ name, requirements = [], output = [], workers = 0, cost = [] }) {
         this.name = name;
         this.requirements = requirements;
         this.output = output;
         this.workers = workers;
+        this.cost = this.cost;
     }
 }
 
@@ -147,14 +150,22 @@ const steel = new Factory({
     name: "Stahlgießerei",
     requirements: [{ type: "material_raw_metals", amount: 5 }],
     output: [{ type: "processed_steel", amount: 5 }],
-    workers: 5
+    workers: 5,
+    cost: [{
+        type: "material_raw_metals",
+        amount: 50
+    }]
 });
 
 const farm = new Factory({
     name: "Farm",
     requirements: [{}],
     output: [{ type: "material_fabrics", amount: 8 }],
-    workers: 5
+    workers: 5,
+    cost: [{
+        type: "material_raw_metals",
+        amount: 20
+    }]
 });
 
 const mine = new Factory({
@@ -162,15 +173,29 @@ const mine = new Factory({
     requirements: [{}],
     output: [{ type: "material_raw_metals", amount: 10 }],
     workers: 8,
+    cost: [{
+        type: "material_raw_metals",
+        amount: 20
+    }]
 });
+
 
 const equip = new Factory({
     name: "Ausrüstung",
     requirements: [{ type: "material_raw_metals", amount: 5 }, { type: "material_fabrics", amount: 5 }],
     output: [{ type: "material_equipment", amount: 8 }],
-    workers: 5
+    workers: 5,
+    cost: [{
+        type: "material_raw_metals",
+        amount: 30
+    }]
 });
-
+const factoryDefinitions = {
+    "steel": steel,
+    "farm": farm,
+    "mine": mine,
+    "equip": equip,
+}
 for (let factoryList = 0; factoryList < saveGame.factoryList.length; factoryList++) {
     const element = saveGame.factoryList[factoryList];
     if (element) console.log(element);
@@ -276,7 +301,7 @@ function marketViewer() {
         this.off("click")
     })
 
-    $(".sell-button").on("click",  function () {
+    $(".sell-button").on("click", function () {
         const item = $(this).data("item")
         addSellParam(item)
         loadSavegame();
@@ -288,18 +313,43 @@ function addSellParam(item) {
     const price = saveGame.marketValues[item]
     if (saveGame.ressources[item] > 0) {
         saveGame.ressources[item] -= 1
-        saveGame.ressources["credits"] += price
+        saveGame.ressources["credits"] = round(saveGame.ressources["credits"] + price)
     }
 }
 
 function addBuyParam(item) {
     const price = saveGame.marketValues[item]
     if (saveGame.ressources["credits"] >= price) {
-        saveGame.ressources["credits"] -= price
+        saveGame.ressources["credits"] = round(saveGame.ressources["credits"] - price)
         if (!saveGame.ressources[item]) saveGame.ressources[item] = 0
         saveGame.ressources[item] += 1
     }
 }
+function showStorage() {
+    closeOverlay();
+    const overlay_html = $("overlay")
+    overlay_html
+        .css({
+            "display": "flex"
+        })
+    overlay_html.find("h1").text("Lager")
+    overlay_html.find("table").remove()
+    let table = $("<table>")
+    let header = $("<tr>")
+    header.append("<th>Item</th>")
+    header.append("<th>Anzahl</th>")
+    table.append(header)
+
+    for (let i = 0; i < Object.keys(saveGame.ressources).length; i++) {
+        let key = Object.keys(saveGame.ressources)[i]
+        let row = $("<tr>")
+        row.append("<td>" + namesOfMaterials[key] + "</td>")
+        row.append("<td>" + saveGame.ressources[key] + "</td>")
+        table.append(row)
+    }
+    overlay_html.append(table)
+}
+
 function closeOverlay() {
     const overlay_html = $("overlay")
     overlay_html
@@ -308,25 +358,115 @@ function closeOverlay() {
         })
 }
 
-function addNavClick(id, to){
-        var element = $("#"+id);
-        element.click(function () {
-            eval(to);
-            element.off("click")
-            element.on("click", function () 
-            {
-                closeOverlay();
-                addNavClick(id, to);
-            })
+function addNavClick(id, to) {
+    var element = $("#" + id);
+    element.click(function () {
+        eval(to);
+        element.off("click")
+        element.on("click", function () {
+            closeOverlay();
+            addNavClick(id, to);
         })
+    })
+}
+function round(number) {
+    return Math.round(number * 100) / 100
+}
+
+function roundStart() {
+    oldSavegame = saveGame;
+    loadSavegame();
+    roundLog = [];
+}
+
+function getFactoryEfficiency(factory) {
+    const def = factoryDefinitions[factory.type]
+    if (!def) return 0
+    const workerRatio = Math.min(factory.workers / def.workers, 1)
+    const modifier = factory.modifer > 0 ? factory.modifer : 1
+    return workerRatio * modifier
+}
+
+function calcRoundEnd() {
+    const addedRessources = {
+        "material_raw_metals": 0,
+        "material_fabrics": 0,
+        "material_equipment": 0,
+        "processed_steel": 0,
+        "processed_Clothes": 0,
+        "processed_furniture": 0
+    }
+
+    for (let id in saveGame.factoryList) {
+        const factory = saveGame.factoryList[id]
+        const def = factoryDefinitions[factory.type]
+        if (!def) continue
+        const efficiency = getFactoryEfficiency(factory)
+        for (let out of def.output) {
+            if (!addedRessources[out.type]) addedRessources[out.type] = 0
+            addedRessources[out.type] += out.amount * efficiency
+        }
+    }
+
+    for (let key in addedRessources) {
+        addedRessources[key] = round(addedRessources[key])
+    }
+
+    generateRoundLogTable(addedRessources);
+
+    return { addedRessources }
+}
+
+function generateRoundLogTable(addedRessources) {
+    let html = `<table border="1"><tr>
+        <th>Fabrik</th>
+        <th>Basisproduktion</th>
+        <th>Malus durch Unterbesetzung</th>
+        <th>Malus durch Event</th>
+        <th>Finaler Output</th>
+        <th>Typ der Output-Ressource</th>
+        <th>Input-Ressourcen</th>
+    </tr>`;
+
+    for (let id in saveGame.factoryList) {
+        const factory = saveGame.factoryList[id];
+        const def = factoryDefinitions[factory.type];
+        if (!def) continue;
+
+        const workerRatio = Math.min(factory.workers / def.workers, 1);
+        const modifier = factory.modifer > 0 ? factory.modifer : 1;
+        const eventMalus = modifier < 1 ? (1 - modifier) : 0;
+        const efficiency = getFactoryEfficiency(factory);
+
+        def.output.forEach(out => {
+            const finalOutput = round(out.amount * efficiency);
+            const inputStr = def.requirements
+                .filter(r => r.type)
+                .map(r => `${r.amount} ${namesOfMaterials[r.type]}`)
+                .join(", ") || "-";
+
+            html += `<tr>
+                <td>${def.name}</td>
+                <td>${out.amount}</td>
+                <td>${round((1 - workerRatio) * 100)}%</td>
+                <td>${round(eventMalus * 100)}%</td>
+                <td>${finalOutput}</td>
+                <td>${namesOfMaterials[out.type]}</td>
+                <td>${inputStr}</td>
+            </tr>`;
+        });
+    }
+
+    html += "</table><br/>";
+    roundLog += html;
 }
 
 
 
 $(document).ready(function () {
-    loadSavegame();
+
+    roundStart()
     addNavClick("VUE", "marketViewer()");
+    addNavClick("Lager", "showStorage()");
+    addNavClick("endRound", "console.log(calcRoundEnd(), roundLog);");
 });
-
-
-

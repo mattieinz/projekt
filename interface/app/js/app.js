@@ -52,8 +52,10 @@ function loadSavegame() {
     const factoryList = saveGame.factoryList;
     if (Object.keys(factoryList).length === 0) return;
 
+    const factoryElement = $('factories');
     const factoriesHtml = buildFactoriesHtml(factoryList);
-    $('factories').append(factoriesHtml);
+    clearFactories(factoryElement)
+    factoryElement.append(factoriesHtml);
 }
 
 function updateResourcesUI(ressources) {
@@ -87,6 +89,11 @@ function buildFactoriesHtml(factoryList) {
 
     return html;
 }
+
+function clearFactories(factoryElement){
+    factoryElement.empty();
+};
+
 
 function buildFactoryHtml(factoryStatus) {
     const factoryType = eval(factoryStatus.type);
@@ -233,6 +240,7 @@ function ranInt(frist, last) {
 }
 
 function marketViewer() {
+    closeOverlay();
     const overlay_html = $("overlay")
     overlay_html
         .css({
@@ -260,7 +268,7 @@ function marketViewer() {
 
     overlay_html.append(table)
 
-    $(document).on("click", ".buy-button", function () {
+    $(".buy-button").on("click", function () {
         const item = $(this).data("item")
         addBuyParam(item)
         loadSavegame();
@@ -268,7 +276,7 @@ function marketViewer() {
         this.off("click")
     })
 
-    $(document).on("click", ".sell-button", function () {
+    $(".sell-button").on("click",  function () {
         const item = $(this).data("item")
         addSellParam(item)
         loadSavegame();
@@ -292,12 +300,32 @@ function addBuyParam(item) {
         saveGame.ressources[item] += 1
     }
 }
+function closeOverlay() {
+    const overlay_html = $("overlay")
+    overlay_html
+        .css({
+            "display": "none"
+        })
+}
+
+function addNavClick(id, to){
+        var element = $("#"+id);
+        element.click(function () {
+            eval(to);
+            element.off("click")
+            element.on("click", function () 
+            {
+                closeOverlay();
+                addNavClick(id, to);
+            })
+        })
+}
 
 
 
 $(document).ready(function () {
     loadSavegame();
-    marketViewer();
+    addNavClick("VUE", "marketViewer()");
 });
 
 

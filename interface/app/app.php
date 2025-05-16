@@ -35,9 +35,8 @@ if (!isset($_SESSION['user'])) {
     </factories>
 
     <footer>
-        <button>Standorte</button>
-        <button>Marktplatz</button>
-        <button>Verbrauchsübersicht</button>
+        <button id="VUE">Marktplatz</button>
+        <button >lager</button>
         <button>Runde Beenden</button>
     </footer>
 

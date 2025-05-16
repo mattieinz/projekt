@@ -44,7 +44,7 @@ const namesOfMaterials = {
     "material_equipment": "Hilfsmittel",
     "processed_steel": "Stahl",
     "processed_Clothes": "Kleidung",
-    "processed_furniture": "Verarbeitete Möbel"
+    "processed_furniture": "Möbel"
 }
 
 function loadSavegame() {

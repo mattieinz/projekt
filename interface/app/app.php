@@ -25,7 +25,7 @@ if (!isset($_SESSION['user'])) {
     <header>
         <name><?php echo $_SESSION['user']; ?></name>
         <resdisplay id="credits"></resdisplay>
-        <resdisplay id="material_metals"></resdisplay>
+        <resdisplay id="material_raw_metals"></resdisplay>
         <resdisplay id="material_fabrics"></resdisplay>
         <resdisplay id="material_equipment"></resdisplay>
     </header>

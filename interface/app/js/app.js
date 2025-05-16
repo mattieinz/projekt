@@ -35,9 +35,9 @@ const saveGame = {
     }
 }
 
-const typesOfMaterials = {
+const namesOfMaterials = {
     "credits": "Credits",
-    "material_metals": "Rohstoffe",
+    "material_raw_metals": "Rohstoffe",
     "material_fabrics": "Stoffe",
     "material_equipment": "Hilfsmittel",
     "processed_steel": "Stahl",
@@ -57,12 +57,12 @@ function loadSavegame() {
 }
 
 function updateResourcesUI(ressources) {
-    $("#credits").html(typesOfMaterials.credits + ressources.credits);
-    $("#material_metals").html(typesOfMaterials.material_metals +
+    $("#credits").html(namesOfMaterials.credits + ressources.credits);
+    $("#material_raw_metals").html(namesOfMaterials.material_raw_metals +
         ressources.material_raw_metals);
-    $("#material_fabrics").html(typesOfMaterials.material_fabrics + 
+    $("#material_fabrics").html(namesOfMaterials.material_fabrics +
         ressources.material_fabrics);
-    $("#material_equipment").html(typesOfMaterials.material_equipment + 
+    $("#material_equipment").html(namesOfMaterials.material_equipment +
         ressources.material_equipment);
 }
 
@@ -116,13 +116,13 @@ function buildFactoryHtml(factoryStatus) {
 function buildFactoryRequirementsHtml(factoryType) {
     return factoryType.requirements
         .filter(req => req.type)
-        .map(req => `<fabriktype>-${req.amount} ${typesOfMaterials[req.type]}</fabriktype>`)
+        .map(req => `<fabriktype>-${req.amount} ${namesOfMaterials[req.type]}</fabriktype>`)
         .join('');
 }
 
 function buildFactoryOutputHtml(factoryType) {
     return factoryType.output
-        .map(out => `<fabriktype>+${out.amount} ${typesOfMaterials[out.type]}</fabriktype>`)
+        .map(out => `<fabriktype>+${out.amount} ${namesOfMaterials[out.type]}</fabriktype>`)
         .join('');
 }
 
@@ -138,7 +138,7 @@ class Factory {
 
 const steel = new Factory({
     name: "Stahlgießerei",
-    requirements: [{ type: "material_metals", amount: 5 }],
+    requirements: [{ type: "material_raw_metals", amount: 5 }],
     output: [{ type: "processed_steel", amount: 5 }],
     workers: 5
 });
@@ -153,13 +153,13 @@ const farm = new Factory({
 const mine = new Factory({
     name: "Bergbau",
     requirements: [{}],
-    output: [{ type: "material_metals", amount: 10 }],
+    output: [{ type: "material_raw_metals", amount: 10 }],
     workers: 8,
 });
 
 const equip = new Factory({
     name: "Ausrüstung",
-    requirements: [{ type: "material_metals", amount: 5 }, { type: "material_fabrics", amount: 5 }],
+    requirements: [{ type: "material_raw_metals", amount: 5 }, { type: "material_fabrics", amount: 5 }],
     output: [{ type: "material_equipment", amount: 8 }],
     workers: 5
 });
@@ -198,10 +198,10 @@ function disatserEvent() {
 }
 
 function marketChangeEvent() {
-    let random_ressource = ranInt(1, Object.keys(saveGame.marketValues).length-1)
+    let random_ressource = ranInt(1, Object.keys(saveGame.marketValues).length - 1)
     let ressourceType = Object.keys(saveGame.marketValues)[random_ressource];
 
-    saveGame.marketValues[ressourceType] = ranInt(1, 100)/10;
+    saveGame.marketValues[ressourceType] = ranInt(1, 100) / 10;
     console.log(ressourceType, saveGame.marketValues[ressourceType]);
 }
 
@@ -232,10 +232,72 @@ function ranInt(frist, last) {
     return Math.floor(Math.random() * last) + frist;
 }
 
+function marketViewer() {
+    const overlay_html = $("overlay")
+    overlay_html
+        .css({
+            "display": "flex"
+        })
+    overlay_html.find("h1").text("Markt")
+    overlay_html.find("table").remove()
+    let table = $("<table>")
+    let header = $("<tr>")
+    header.append("<th>Item</th>")
+    header.append("<th>Preis</th>")
+    header.append("<th>Kaufen</th>")
+    header.append("<th>Verkaufen</th>")
+    table.append(header)
+
+    for (let i = 0; i < Object.keys(saveGame.marketValues).length; i++) {
+        let key = Object.keys(saveGame.marketValues)[i]
+        let row = $("<tr>")
+        row.append("<td>" + namesOfMaterials[key] + "</td>")
+        row.append("<td>" + saveGame.marketValues[key] + "</td>")
+        row.append('<td><button class="buy-button" data-item="' + key + '">Kaufen</button></td>')
+        row.append('<td><button class="sell-button" data-item="' + key + '">Verkaufen</button></td>')
+        table.append(row)
+    }
+
+    overlay_html.append(table)
+
+    $(document).on("click", ".buy-button", function () {
+        const item = $(this).data("item")
+        addBuyParam(item)
+        loadSavegame();
+        marketViewer();
+        this.off("click")
+    })
+
+    $(document).on("click", ".sell-button", function () {
+        const item = $(this).data("item")
+        addSellParam(item)
+        loadSavegame();
+        marketViewer();
+        this.off("click")
+    })
+}
+function addSellParam(item) {
+    const price = saveGame.marketValues[item]
+    if (saveGame.ressources[item] > 0) {
+        saveGame.ressources[item] -= 1
+        saveGame.ressources["credits"] += price
+    }
+}
+
+function addBuyParam(item) {
+    const price = saveGame.marketValues[item]
+    if (saveGame.ressources["credits"] >= price) {
+        saveGame.ressources["credits"] -= price
+        if (!saveGame.ressources[item]) saveGame.ressources[item] = 0
+        saveGame.ressources[item] += 1
+    }
+}
+
+
 
 $(document).ready(function () {
     loadSavegame();
-    marketChangeEvent();
+    marketViewer();
 });
 
 

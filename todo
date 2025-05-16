@@ -1,5 +1,11 @@
-- datenbank einlesen / speichern des Spielstands
+
+Sonntag
 - rundenergebnis berechnen
-- event Marktveränderung
-- Arbeiter Anwerben
+- event Marktveränderung fixen
 - log erstellen
+
+
+
+Samstag
+- datenbank einlesen / speichern des Spielstands
+- Arbeiter Anwerben

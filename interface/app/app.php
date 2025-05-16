@@ -36,6 +36,7 @@ if (!isset($_SESSION['user'])) {
 
     <footer>
         <button id="VUE">Marktplatz</button>
+        <button id="Workers">Arbeiter Anwerben</button>
         <button id="Lager">Lager</button>
         <button id="endRound">Runde Beenden</button>
     </footer>

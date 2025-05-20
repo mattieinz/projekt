@@ -45,3 +45,4 @@ if (!isset($_SESSION['user'])) {
         <!-- Event messages will be added here -->
     </overlay>
 </body>
+

@@ -1,8 +1,8 @@
 var saveGame = {
     ressources: {
-        "credits": 100,
-        "material_raw_metals": 0,
-        "material_fabrics": 0,
+        "credits": 90,
+        "material_raw_metals": 50,
+        "material_fabrics": 20,
         "material_equipment": 0,
         "processed_steel": 0,
         "processed_Clothes": 0,
@@ -26,7 +26,7 @@ var saveGame = {
             modifer_description: "Durch Streik verursacht"
         },
         1: {
-            type: "steelFactory",
+            type: "steel",
             workers: 5,
             modifer: 0.4,
             modifer_time: 4,
@@ -35,8 +35,49 @@ var saveGame = {
     }
 }
 
-var oldSavegame = {};
-var roundLog = "";
+
+// var oldSavegame = {};
+var oldSavegame = {
+    ressources: {
+        "credits": 50,
+        "material_raw_metals": 100,
+        "material_fabrics": 10,
+        "material_equipment": 0,
+        "processed_steel": 0,
+        "processed_Clothes": 0,
+        "processed_furniture": 0
+    },
+    marketValues: {
+        "material_raw_metals": 0.86,
+        "material_fabrics": 0.77,
+        "material_equipment": 1,
+        "processed_steel": 4,
+        "processed_Clothes": 2,
+        "processed_furniture": 5
+    },
+    factoryList:
+    {
+        0: {
+            type: "mine",
+            workers: 5,
+            modifer: 0.4,
+            modifer_time: 4,
+            modifer_description: "Durch Streik verursacht"
+        },
+        1: {
+            type: "steel",
+            workers: 5,
+            modifer: 0.4,
+            modifer_time: 4,
+            modifer_description: "Durch Streik verursacht"
+        }
+    }
+}
+
+var roundLog = [
+    "Spieler hat 50 Rohstoffe für 60 Credits verkauft",
+    "Spieler hat 20 Stoffe 20 Credits gekauft"
+];
 
 const namesOfMaterials = {
     "credits": "Credits",
@@ -146,12 +187,20 @@ class Factory {
     }
 }
 
-const steelFactory = new Factory({
+const steel = new Factory({
     name: "Stahlgießerei",
     requirements: [{ type: "material_raw_metals", amount: 5 }],
     output: [{ type: "processed_steel", amount: 5 }],
     workers: 5,
-    cost: [{type: "material_raw_metals",amount: 50}]
+    cost: [{ type: "material_raw_metals", amount: 50 }]
+});
+
+const mine = new Factory({
+    name: "Bergbau",
+    requirements: [{}],
+    output: [{ type: "material_raw_metals", amount: 10 }],
+    workers: 8,
+    cost: [{ type: "material_raw_metals", amount: 20 }]
 });
 
 const farm = new Factory({
@@ -164,18 +213,6 @@ const farm = new Factory({
         amount: 20
     }]
 });
-
-const mine = new Factory({
-    name: "Bergbau",
-    requirements: [{}],
-    output: [{ type: "material_raw_metals", amount: 10 }],
-    workers: 8,
-    cost: [{
-        type: "material_raw_metals",
-        amount: 20
-    }]
-});
-
 
 const equip = new Factory({
     name: "Ausrüstung",
@@ -208,7 +245,7 @@ const furniture = new Factory({
     }]
 });
 const factoryDefinitions = {
-    "steelFactory": steelFactory,
+    "steel": steel,
     "farm": farm,
     "mine": mine,
     "equip": equip,
@@ -229,21 +266,29 @@ function randomEvent() {
         case 3: marketChangeEvent(); break;
     }
 }
-function strikeEvent() {
-    let amount_factory = ranInt(1, saveGame.factoryList.length / 2);
+function strikeEventEffectedFactories() {
+    let amount_factory = ranInt(1, saveGame.factoryList.length);
     let amount_decrease = ranInt(10, 60);
     let affected_factorys = [];
 
-    let output = "";
-    output += "amount_factory: " + amount_factory + "<br>";
-    output += "amount_decrease: " + amount_decrease + "<br>";
-
-    for (let i = 0; i < affected_factorys.length; i++) {
-        output += affected_factorys[i] + "<br>";
+    for (let i = 0; i < amount_factory; i++) {
+        let factory = saveGame.factoryList[ranInt(0, saveGame.factoryList.length - 1)];
+        factory.modifier = 1 - amount_decrease / 100;
+        affected_factorys.push(factory);
     }
 
-    overlay("Streik in der Arbeiterschaft!", "Beischreibung", [], []);
+    return [affected_factorys, amount_decrease]
 }
+function EffectedFactoriesToOverlay() {
+    let affected_factorys = strikeEventEffectedFactories();
+    let affected_factorys_html = "";
+    for (let i = 0; i < affected_factorys.length; i++) {
+        affected_factorys_html += `<li>${affected_factorys[i].name}</li>`
+    }
+    return affected_factorys_html
+}
+
+
 function disatserEvent() {
 
 }
@@ -397,9 +442,8 @@ function round(number) {
 }
 
 function roundStart() {
-    oldSavegame = saveGame;
+    // oldSavegame = saveGame;
     loadSavegame();
-    roundLog = [];
 }
 
 function getFactoryEfficiency(factory) {
@@ -600,22 +644,45 @@ function baumenu() {
     overlay_html.append(closeBtn);
 }
 
-
-
 $(document).ready(function () {
     roundStart()
     addNavClick("VUE", "marketViewer()");
     addNavClick("Lager", "showStorage()");
-    addNavClick("endRound", "console.log(calcRoundEnd(), roundLog);");
+    addNavClick("endRound", "");
     addNavClick("Workers", "showWorkerRecruitment()");
+    renderRoundLog();
+    createRoundEndTable();
+
 });
 
+function createRoundEndTable() {
+    let ressources = Object.keys(saveGame.ressources);
+    let table = $('<table><thead><tr><th>Ressourcen</th><th>Vorher</th><th>Jetzt</th><th>Differenz</th></tr></thead><tbody></tbody></table>');
+
+    ressources.forEach(function (key) {
+        let oldVal = oldSavegame.ressources[key] || 0;
+        let newVal = saveGame.ressources[key] || 0;
+        let diff = newVal - oldVal;
+        let row = $('<tr></tr>');
+        row.append('<td>' + namesOfMaterials[key] + '</td>');
+        row.append('<td>' + oldVal + '</td>');
+        row.append('<td>' + newVal + '</td>');
+        row.append('<td>' + diff + '</td>');
+        table.find('tbody').append(row);
+    });
 
 
+    $('overlay').append(table);
+}
 
-
-
-
+function renderRoundLog() {
+    var container = $('overlay');
+    console.log();
+    
+    roundLog.forEach(function (entry) {
+        container.append($('<p>').text(entry));
+    });
+}
 
 
 
@@ -672,7 +739,7 @@ $(document).ready(function () {
 //                     modifer_description: ""
 //                 },
 //                 1: {
-//                     type: "steelFactory",
+//                     type: "steel",
 //                     workers: 5,
 //                     modifer: 0,
 //                     modifer_time: 0,

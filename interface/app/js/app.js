@@ -21,19 +21,20 @@ var saveGame = {
         0: {
             type: "mine",
             workers: 5,
-            modifer: 0,
-            modifer_time: 0,
-            modifer_description: ""
+            modifer: 0.4,
+            modifer_time: 4,
+            modifer_description: "Durch Streik verursacht"
         },
         1: {
-            type: "steel",
+            type: "steelFactory",
             workers: 5,
-            modifer: 0,
-            modifer_time: 0,
-            modifer_description: ""
+            modifer: 0.4,
+            modifer_time: 4,
+            modifer_description: "Durch Streik verursacht"
         }
     }
 }
+
 var oldSavegame = {};
 var roundLog = "";
 
@@ -141,20 +142,16 @@ class Factory {
         this.requirements = requirements;
         this.output = output;
         this.workers = workers;
-        this.cost = this.cost;
+        this.cost = cost;
     }
 }
 
-
-const steel = new Factory({
+const steelFactory = new Factory({
     name: "Stahlgießerei",
     requirements: [{ type: "material_raw_metals", amount: 5 }],
     output: [{ type: "processed_steel", amount: 5 }],
     workers: 5,
-    cost: [{
-        type: "material_raw_metals",
-        amount: 50
-    }]
+    cost: [{type: "material_raw_metals",amount: 50}]
 });
 
 const farm = new Factory({
@@ -190,11 +187,33 @@ const equip = new Factory({
         amount: 30
     }]
 });
+const cloths = new Factory({
+    name: "Kleidungsfabrik",
+    requirements: [{ type: "material_raw_metals", amount: 5 }, { type: "material_fabrics", amount: 5 }],
+    output: [{ type: "material_equipment", amount: 8 }],
+    workers: 5,
+    cost: [{
+        type: "material_raw_metals",
+        amount: 30
+    }]
+});
+const furniture = new Factory({
+    name: "Möbelfabrik",
+    requirements: [{ type: "material_raw_metals", amount: 5 }, { type: "material_fabrics", amount: 5 }],
+    output: [{ type: "material_equipment", amount: 8 }],
+    workers: 5,
+    cost: [{
+        type: "material_raw_metals",
+        amount: 30
+    }]
+});
 const factoryDefinitions = {
-    "steel": steel,
+    "steelFactory": steelFactory,
     "farm": farm,
     "mine": mine,
     "equip": equip,
+    "cloths": cloths,
+    "furniture": furniture
 }
 for (let factoryList = 0; factoryList < saveGame.factoryList.length; factoryList++) {
     const element = saveGame.factoryList[factoryList];
@@ -204,7 +223,7 @@ for (let factoryList = 0; factoryList < saveGame.factoryList.length; factoryList
 
 
 function randomEvent() {
-    switch (ranInt(1, 3)) {
+    switch (ranInt(1, 1)) {
         case 1: strikeEvent(); break;
         case 2: disatserEvent(); break;
         case 3: marketChangeEvent(); break;
@@ -245,7 +264,11 @@ function overlay(Title, description, option1 = [], option2 = []) {
         .css({
             "display": "flex"
         })
-
+    overlay_html.append(`
+        <h1></h1>
+        <p></p>
+        <button onclick="closeOverlay()" style="border">schließen</button>
+    `)
     overlay_html.find("h1").text(Title)
     overlay_html.find("p").text(description)
 
@@ -286,8 +309,8 @@ function marketViewer() {
         let row = $("<tr>")
         row.append("<td>" + namesOfMaterials[key] + "</td>")
         row.append("<td>" + saveGame.marketValues[key] + "</td>")
-        row.append('<td><button class="buy-button" data-item="' + key + '">Kaufen</button></td>')
-        row.append('<td><button class="sell-button" data-item="' + key + '">Verkaufen</button></td>')
+        row.append('<td><button class="buy-button" data-item="' + key + '">✔</button></td>')
+        row.append('<td><button class="sell-button" data-item="' + key + '">€</button></td>')
         table.append(row)
     }
 
@@ -460,13 +483,211 @@ function generateRoundLogTable(addedRessources) {
     html += "</table><br/>";
     roundLog += html;
 }
+function showWorkerRecruitment() {
+    closeOverlay();
+    const overlay_html = $("overlay");
+    overlay_html.css({ "display": "flex" });
+    overlay_html.find("h1").text("Arbeiter anwerben");
+    overlay_html.find("p").text("Hier kannst du deine Fabriken mit zusätzlichen Arbeitern ausstatten.");
+    overlay_html.find("table").remove();
+    overlay_html.find("button").remove();
+
+
+    let table = $("<table>");
+    let header = $("<tr>");
+    header.append("<th>Fabrik</th>");
+    header.append("<th>Arbeiter</th>");
+    header.append("<th>Aktion</th>");
+    table.append(header);
+
+    for (const id in saveGame.factoryList) {
+        const factory = saveGame.factoryList[id];
+        const def = factoryDefinitions[factory.type];
+        if (!def) continue;
+
+        const row = $("<tr>");
+        row.append("<td>" + def.name + "</td>");
+        row.append("<td>" + factory.workers + "/" + def.workers + "</td>");
+
+        if (factory.workers < def.workers) {
+            const recruitBtn = $("<button>Anwerben</button>");
+            recruitBtn.on("click", function () {
+                factory.workers += 1;
+                if (factory.workers > def.workers) factory.workers = def.workers;
+                showWorkerRecruitment();
+            });
+            row.append($("<td>").append(recruitBtn));
+        } else {
+            row.append("<td>Voll besetzt</td>");
+        }
+
+        table.append(row);
+    }
+
+    overlay_html.append(table);
+
+    const closeBtn = $("<button>Schließen</button>");
+    closeBtn.on("click", function () {
+        closeOverlay();
+        loadSavegame();
+    });
+    overlay_html.append(closeBtn);
+}
+function baumenu() {
+    closeOverlay();
+    const overlay_html = $("overlay");
+    overlay_html.css({ display: "flex" });
+    overlay_html.find("h1").text("Fabrik bauen");
+    overlay_html.find("p").text("Wähle eine Fabrik zum Bauen aus:");
+    overlay_html.find("table").remove();
+    overlay_html.find("button").remove();
+
+    const table = $("<table>");
+    const header = $("<tr>");
+    header.append("<th>Fabrik</th>");
+    header.append("<th>Kosten</th>");
+    header.append("<th>Aktion</th>");
+    table.append(header);
+
+    for (const key in factoryDefinitions) {
+        const def = factoryDefinitions[key];
+        const row = $("<tr>");
+        row.append("<td>" + def.name + "</td>");
+
+        const costStr = def.cost.map(c => `${c.amount} ${namesOfMaterials[c.type]}`).join(", ");
+        row.append("<td>" + costStr + "</td>");
+
+        const buildBtn = $("<button>Bauen</button>");
+        buildBtn.on("click", function () {
+            let canBuild = true;
+            for (const c of def.cost) {
+                if (saveGame.ressources[c.type] < c.amount) {
+                    canBuild = false;
+                    break;
+                }
+            }
+
+            if (!canBuild) return;
+
+            for (const c of def.cost) {
+                saveGame.ressources[c.type] -= c.amount;
+            }
+
+            const newId = Object.keys(saveGame.factoryList).length;
+            saveGame.factoryList[newId] = {
+                type: key,
+                workers: 0,
+                modifer: 1,
+                modifer_time: 0,
+                modifer_description: ""
+            };
+
+            baumenu();
+            loadSavegame();
+        });
+
+        row.append($("<td>").append(buildBtn));
+        table.append(row);
+    }
+
+    overlay_html.append(table);
+
+    const closeBtn = $("<button>Schließen</button>");
+    closeBtn.on("click", function () {
+        closeOverlay();
+        loadSavegame();
+    });
+    overlay_html.append(closeBtn);
+}
 
 
 
 $(document).ready(function () {
-
     roundStart()
     addNavClick("VUE", "marketViewer()");
     addNavClick("Lager", "showStorage()");
     addNavClick("endRound", "console.log(calcRoundEnd(), roundLog);");
+    addNavClick("Workers", "showWorkerRecruitment()");
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// saveGame = {};
+
+
+// function fetchSavegame() {
+//     return fetch('getSavegame.php', { credentials: 'include' })
+//         .then(r => r.json())
+//         .then(data => { saveGame = data })
+// }
+
+// function saveSavegame() {
+//     return fetch('update_savegame.php', {
+//         method: 'POST',
+//         credentials: 'include',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(saveGame)
+//     }).then(r => r.json())
+// }
+
+// document.addEventListener('DOMContentLoaded', () => {
+//     fetchSavegame().then(() => {
+//         saveGame = {
+//             ressources: {
+//                 "credits": 100,
+//                 "material_raw_metals": 0,
+//                 "material_fabrics": 0,
+//                 "material_equipment": 0,
+//                 "processed_steel": 0,
+//                 "processed_Clothes": 0,
+//                 "processed_furniture": 0
+//             },
+//             marketValues: {
+//                 "material_raw_metals": 0.86,
+//                 "material_fabrics": 0.77,
+//                 "material_equipment": 1,
+//                 "processed_steel": 4,
+//                 "processed_Clothes": 2,
+//                 "processed_furniture": 5
+//             },
+//             factoryList:
+//             {
+//                 0: {
+//                     type: "mine",
+//                     workers: 5,
+//                     modifer: 0,
+//                     modifer_time: 0,
+//                     modifer_description: ""
+//                 },
+//                 1: {
+//                     type: "steelFactory",
+//                     workers: 5,
+//                     modifer: 0,
+//                     modifer_time: 0,
+//                     modifer_description: ""
+//                 }
+//             }
+//         }
+//         roundStart()
+//         addNavClick("VUE", "marketViewer()")
+//         addNavClick("Lager", "showStorage()")
+
+//         document.getElementById('endRound').addEventListener('click', () => {
+//             const result = calcRoundEnd()
+//             roundLog = result
+//             saveSavegame().then(() => loadSavegame())
+//         })
+//     })
+// })
